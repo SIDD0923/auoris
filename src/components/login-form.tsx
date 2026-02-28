@@ -53,34 +53,14 @@ export function LoginForm({
     }
   };
 
-  const handleGoogle = async () => {
+  const handleGoogle = () => {
     setGoogleLoading(true);
     setError(null);
-    try {
-      const result = await signIn.social({
-        provider: "google",
-        callbackURL: callbackUrl,
-      });
-
-      // If the library didn't auto-redirect, do it manually
-      if (result?.data?.url) {
-        window.location.href = result.data.url;
-        return;
-      }
-
-      // Surface server-side errors
-      if (result?.error) {
-        setError(
-          (result.error as { message?: string }).message || "Google sign-in failed."
-        );
-        setGoogleLoading(false);
-        return;
-      }
-    } catch (err) {
-      console.error("Google OAuth error:", err);
-      setError("Could not connect to Google. Please try again.");
-      setGoogleLoading(false);
-    }
+    // Full-page redirect — ensures the state cookie is set during a real
+    // navigation instead of a background fetch, which is 100 % reliable.
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+    const redirectUrl = `${baseUrl}/api/auth/signin/social?provider=google&callbackURL=${encodeURIComponent(callbackUrl)}`;
+    window.location.href = redirectUrl;
   };
 
   return (
