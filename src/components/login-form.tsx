@@ -57,12 +57,28 @@ export function LoginForm({
     setGoogleLoading(true);
     setError(null);
     try {
-      await signIn.social({
+      const result = await signIn.social({
         provider: "google",
         callbackURL: callbackUrl,
       });
-    } catch {
-      setError("Google sign-in failed.");
+
+      // If the library didn't auto-redirect, do it manually
+      if (result?.data?.url) {
+        window.location.href = result.data.url;
+        return;
+      }
+
+      // Surface server-side errors
+      if (result?.error) {
+        setError(
+          (result.error as { message?: string }).message || "Google sign-in failed."
+        );
+        setGoogleLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Google OAuth error:", err);
+      setError("Could not connect to Google. Please try again.");
       setGoogleLoading(false);
     }
   };
