@@ -1,64 +1,19 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import TopNav from "@/components/TopNav";
 import Sidebar from "@/components/Sidebar";
-import EditorArea, { Tab } from "@/components/EditorArea";
+import EditorArea from "@/components/EditorArea";
 import BottomPanel from "@/components/BottomPanel";
 import AIAssistant from "@/components/AIAssistant";
 import StatusBar from "@/components/StatusBar";
-import { FileNode } from "@/lib/mockData";
+import { FileSystemProvider } from "@/lib/fileSystem";
 import { BotMessageSquare } from "lucide-react";
 
-export default function IDELayout() {
-  const [tabs, setTabs] = useState<Tab[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+function IDEContent() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [panelHeight, setPanelHeight] = useState(200);
   const [aiOpen, setAiOpen] = useState(false);
-
-  const handleFileSelect = useCallback(
-    (file: FileNode, path: string) => {
-      if (file.type !== "file" || !file.content) return;
-
-      // Check if tab already exists
-      const existing = tabs.find((t) => t.path === path);
-      if (existing) {
-        setActiveTabId(existing.id);
-        return;
-      }
-
-      const newTab: Tab = {
-        id: `tab-${Date.now()}`,
-        name: file.name,
-        path,
-        language: file.language || "plaintext",
-        content: file.content,
-      };
-      setTabs((prev) => [...prev, newTab]);
-      setActiveTabId(newTab.id);
-    },
-    [tabs]
-  );
-
-  const handleTabSelect = useCallback((tabId: string) => {
-    setActiveTabId(tabId);
-  }, []);
-
-  const handleTabClose = useCallback(
-    (tabId: string) => {
-      setTabs((prev) => {
-        const newTabs = prev.filter((t) => t.id !== tabId);
-        if (activeTabId === tabId) {
-          const idx = prev.findIndex((t) => t.id === tabId);
-          const next = newTabs[Math.min(idx, newTabs.length - 1)];
-          setActiveTabId(next?.id ?? null);
-        }
-        return newTabs;
-      });
-    },
-    [activeTabId]
-  );
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#11111b] text-[#cccccc] font-sans">
@@ -68,17 +23,12 @@ export default function IDELayout() {
       {/* Main content area */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Left Sidebar */}
-        <Sidebar onFileSelect={handleFileSelect} />
+        <Sidebar />
 
         {/* Center: Editor + Bottom Panel */}
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
           {/* Editor */}
-          <EditorArea
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabSelect={handleTabSelect}
-            onTabClose={handleTabClose}
-          />
+          <EditorArea />
 
           {/* Bottom Panel */}
           <BottomPanel
@@ -107,5 +57,13 @@ export default function IDELayout() {
       {/* Status Bar */}
       <StatusBar onPanelToggle={() => setPanelOpen(!panelOpen)} />
     </div>
+  );
+}
+
+export default function IDELayout() {
+  return (
+    <FileSystemProvider>
+      <IDEContent />
+    </FileSystemProvider>
   );
 }
