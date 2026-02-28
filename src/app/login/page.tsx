@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { LoginForm } from "@/components/login-form";
 import { ChevronRight, Code2, Sparkles, Zap } from "lucide-react";
 
-export default function LoginPage() {
+function LoginContent() {
   return (
     <div className="relative grid min-h-svh lg:grid-cols-2">
       {/* ── Left branding panel (hidden on mobile) ────────────────────── */}
@@ -78,5 +79,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }

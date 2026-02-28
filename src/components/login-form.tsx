@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, ChevronRight } from "lucide-react";
 
 export function LoginForm({
@@ -18,6 +18,9 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,11 +36,17 @@ export function LoginForm({
     try {
       const result = await signIn.email({ email, password });
       if (result.error) {
-        setError(result.error.message ?? "Invalid email or password");
+        const msg = result.error.message ?? "Invalid email or password";
+        setError(
+          msg.includes("INVALID_EMAIL_OR_PASSWORD")
+            ? "Invalid email or password. Please try again."
+            : msg
+        );
         setLoading(false);
         return;
       }
-      router.push("/");
+      router.push(callbackUrl);
+      router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -48,7 +57,10 @@ export function LoginForm({
     setGoogleLoading(true);
     setError(null);
     try {
-      await signIn.social({ provider: "google", callbackURL: "/" });
+      await signIn.social({
+        provider: "google",
+        callbackURL: callbackUrl,
+      });
     } catch {
       setError("Google sign-in failed.");
       setGoogleLoading(false);

@@ -4,9 +4,10 @@ import { db } from "./db";
 import * as schema from "./schema";
 
 const isProduction = process.env.NODE_ENV === "production";
+const appUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: appUrl,
 
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -14,8 +15,9 @@ export const auth = betterAuth({
   }),
 
   trustedOrigins: [
-    process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-    ...(process.env.NEXT_PUBLIC_APP_URL
+    appUrl,
+    ...(process.env.NEXT_PUBLIC_APP_URL &&
+    process.env.NEXT_PUBLIC_APP_URL !== appUrl
       ? [process.env.NEXT_PUBLIC_APP_URL]
       : []),
   ],
@@ -23,30 +25,53 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    autoSignIn: true,
   },
 
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      redirectURI: isProduction
+        ? `${appUrl}/api/auth/callback/google`
+        : undefined,
     },
   },
 
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24,      // update session every 24 hours
+    updateAge: 60 * 60 * 24,      // refresh token every 24h
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60, // cache for 5 minutes
+      maxAge: 5 * 60, // 5 min client-side cache
+    },
+  },
+
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
     },
   },
 
   advanced: {
     useSecureCookies: isProduction,
+    crossSubDomainCookies: isProduction
+      ? {
+          enabled: true,
+          domain: ".onrender.com",
+        }
+      : undefined,
     defaultCookieAttributes: {
       sameSite: "lax",
+      httpOnly: true,
       ...(isProduction && { secure: true }),
     },
+  },
+
+  rateLimit: {
+    window: 60,    // 60-second window
+    max: 30,       // 30 requests per window
   },
 });
 
