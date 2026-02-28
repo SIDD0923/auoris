@@ -54,12 +54,6 @@ export const auth = betterAuth({
 
   advanced: {
     useSecureCookies: isProduction,
-    crossSubDomainCookies: isProduction
-      ? {
-          enabled: true,
-          domain: ".onrender.com",
-        }
-      : undefined,
     defaultCookieAttributes: {
       sameSite: "lax",
       httpOnly: true,
