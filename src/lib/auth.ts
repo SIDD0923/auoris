@@ -32,9 +32,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirectURI: isProduction
-        ? `${appUrl}/api/auth/callback/google`
-        : undefined,
+      redirectURI: `${appUrl}/api/auth/callback/google`,
     },
   },
 
