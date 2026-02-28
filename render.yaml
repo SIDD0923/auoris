@@ -3,6 +3,8 @@ services:
     name: auris-ide
     runtime: node
     plan: free
+    region: oregon
+    nodeVersion: "22.18.0"
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
