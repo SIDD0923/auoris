@@ -42,7 +42,7 @@ export const auth = betterAuth({
   },
 
   advanced: {
-    useSecureCookies: isProduction, // __Secure- prefix in production (HTTPS)
+    useSecureCookies: isProduction,
     defaultCookieAttributes: {
       sameSite: "lax",
       ...(isProduction && { secure: true }),
